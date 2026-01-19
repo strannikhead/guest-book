@@ -1,8 +1,10 @@
 import logging
 import os
+import random
 import time
 import uuid
 from contextlib import asynccontextmanager
+from datetime import datetime
 from typing import List
 
 import uvicorn
@@ -128,40 +130,51 @@ def list_messages():
 
 @app.post("/messages")
 def add_message(msg: MessageIn):
-    """Добавить новое сообщение"""
-    if not pool:
-        return {"status": "error", "message": "YDB is not available"}
+    """Добавить новое сообщение - ТОЧНО КАК В FLASK"""
+    if not driver:
+        return {"status": "error", "message": "Database not ready"}
 
     try:
-        msg_id = str(uuid.uuid4())
-        current_timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        msg_id = str(int(time.time() * 1000)) + ''.join(
+            [chr(random.randint(97, 122)) for _ in range(7)]
+        )
+        timestamp = datetime.now().isoformat()
 
-        def query(session):
-            session.transaction().execute(
-                """
-                DECLARE $id AS Utf8;
-                DECLARE $author AS Utf8;
-                DECLARE $message AS Utf8;
-                DECLARE $timestamp AS Utf8;
+        query = """
+            DECLARE $id AS Utf8;
+            DECLARE $author AS Utf8;
+            DECLARE $message AS Utf8;
+            DECLARE $timestamp AS Utf8;
 
-                INSERT INTO messages (id, author, message, timestamp)
-                VALUES ($id, $author, $message, $timestamp);
-                """,
-                {
-                    "$id": msg_id,
-                    "$author": msg.author,
-                    "$message": msg.message,
-                    "$timestamp": current_timestamp,
-                },
-                commit_tx=True,
-            )
+            INSERT INTO messages (id, author, message, timestamp)
+            VALUES ($id, $author, $message, $timestamp);
+        """
 
-        pool.retry_operation_sync(query)
-        return {"status": "ok", "id": msg_id}
+        session = driver.table_client.session().create()
+        prepared_query = session.prepare(query)
+        session.transaction().execute(
+            prepared_query,
+            {
+                '$id': msg_id,
+                '$author': msg.author,
+                '$message': msg.message,
+                '$timestamp': timestamp,
+            },
+            commit_tx=True,
+        )
 
-    except Exception as e:
-        print(f'Error saving message: {e}')
-        return {"status": "error", "message": str(e)}
+        return {
+            'id': msg_id,
+            'author': msg.author,
+            'message': msg.message,
+            'timestamp': timestamp
+        }
+
+    except Exception as error:
+        print(f'Failed to add message: {error}')
+        import traceback
+        traceback.print_exc()
+        return {"status": "error", "message": str(error)}
 
 
 if __name__ == "__main__":
