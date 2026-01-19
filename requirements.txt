@@ -1,0 +1,6 @@
+fastapi~=0.128.0
+uvicorn
+ydb~=3.23.1
+
+pydantic~=2.12.5
+requests>=2.30
