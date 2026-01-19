@@ -1,6 +1,6 @@
 ydb \
   --endpoint grpcs://ydb.serverless.yandexcloud.net:2135 \
-  --database /ru-central1/b1gg2nsser01m7uhn0ad/etn44f5cojgs2dkncukn \
+  --database /ru-central1/b1gg2nsser01m7uhn0ad/etngmqco9mbhtqtb0j31 \
   table query execute \
   -q '
 CREATE TABLE messages (

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гостевая книга</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .version-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .version-info div {
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+
+        main {
+            padding: 30px;
+        }
+
+        .message-form {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: block;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .messages-list {
+            margin-top: 30px;
+        }
+
+        .messages-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #1e293b;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .message-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .message-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .message-author {
+            font-weight: 700;
+            color: #4f46e5;
+            font-size: 1.1rem;
+        }
+
+        .message-time {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .message-content {
+            color: #334155;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .loading, .error, .empty {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            color: #ef4444;
+            background: #fef2f2;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .refresh-btn {
+            background: #10b981;
+            width: auto;
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+            font-size: 0.9rem;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            body {
+                padding: 0;
+                background: white;
+            }
+
+            header {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            main {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📖 Гостевая книга</h1>
+        <div class="subtitle">Оставьте ваше сообщение для других посетителей</div>
+        <div class="version-info">
+            <div>Версия фронтенда: <strong>1.0.0</strong></div>
+            <div id="backend-version">Версия бекенда: <span class="loading-text">загрузка...</span></div>
+            <div id="backend-status">Статус бекенда: <span class="loading-text">проверка...</span></div>
+            <div id="backend-instance">ID инстанса: <span class="loading-text">загрузка...</span></div>
+        </div>
+    </header>
+
+    <main>
+        <div class="message-form">
+            <h2>✍️ Написать сообщение</h2>
+            <form id="messageForm">
+                <div class="form-group">
+                    <label for="author">Ваше имя:</label>
+                    <input type="text" id="author" name="author" required
+                           placeholder="Введите ваше имя" minlength="2" maxlength="50">
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Сообщение:</label>
+                    <textarea id="message" name="message" required
+                              placeholder="Напишите ваше сообщение..."
+                              minlength="5" maxlength="500"></textarea>
+                </div>
+
+                <button type="submit" id="submitBtn">Отправить сообщение</button>
+            </form>
+        </div>
+
+        <div class="messages-list">
+            <h2 class="messages-title">📨 Последние сообщения</h2>
+            <div id="messagesContainer">
+                <div class="loading">⏳ Загрузка сообщений...</div>
+            </div>
+            <button onclick="loadMessages()" class="refresh-btn">🔄 Обновить сообщения</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>Гостевая книга </p>
+    </footer>
+</div>
+
+<script>
+    const API_BASE_URL = window.location.origin.includes('yandexcloud')
+        ? window.location.origin
+        : 'http://localhost:8080';
+
+    let appState = {
+        backendVersion: 'неизвестно',
+        backendStatus: 'неизвестно',
+        instanceId: 'неизвестно',
+        messages: []
+    };
+
+    const backendVersionEl = document.getElementById('backend-version');
+    const backendStatusEl = document.getElementById('backend-status');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageForm = document.getElementById('messageForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function renderMessages() {
+        if (appState.messages.length === 0) {
+            messagesContainer.innerHTML = '<div class="empty">Пока нет сообщений. Будьте первым!</div>';
+            return;
+        }
+
+        messagesContainer.innerHTML = appState.messages.map(msg => `
+                <div class="message-card">
+                    <div class="message-header">
+                        <div class="message-author">👤 ${escapeHtml(msg.author)}</div>
+                        <div class="message-time">⏰ ${formatDateTime(msg.timestamp)}</div>
+                    </div>
+                    <div class="message-content">${escapeHtml(msg.message).replace(/\n/g, '<br>')}</div>
+                </div>
+            `).join('');
+    }
+
+    async function loadMessages() {
+        try {
+            messagesContainer.innerHTML = '<div class="loading">⏳ Загрузка сообщений...</div>';
+
+            const response = await fetch(`${API_BASE_URL}/messages`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const data = await response.json();
+
+            // Поддержка двух форматов: {'messages': [...]} и просто [...]
+            appState.messages = data.messages || data;
+
+            renderMessages();
+        } catch (error) {
+            console.error('Error loading messages:', error);
+            messagesContainer.innerHTML = `
+            <div class="error">
+                ❌ Ошибка загрузки сообщений: ${error.message}
+                <br><small>Проверьте подключение к бекенду</small>
+            </div>
+        `;
+        }
+    }
+
+    async function checkBackendHealth() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/health`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const data = await response.json();
+            appState.backendVersion = data.backend_version;
+            appState.backendStatus = data.ydb_status === 'connected' ? '✅ Работает с YDB' : '⚠️ Без YDB';
+            appState.instanceId = data.instance_id || 'неизвестно';
+
+            backendVersionEl.innerHTML = `Версия бекенда: <strong>${appState.backendVersion}</strong>`;
+            backendStatusEl.innerHTML = `Статус бекенда: <strong>${appState.backendStatus}</strong>`;
+
+            const backendInstanceEl = document.getElementById('backend-instance');
+            if (backendInstanceEl) {
+                backendInstanceEl.innerHTML = `ID инстанса: <strong>${appState.instanceId}</strong>`;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error checking backend health:', error);
+            appState.backendStatus = '❌ Недоступен';
+            backendStatusEl.innerHTML = `Статус бекенда: <strong class="error">${appState.backendStatus}</strong>`;
+
+            const backendInstanceEl = document.getElementById('backend-instance');
+            if (backendInstanceEl) {
+                backendInstanceEl.innerHTML = `ID инстанса: <strong class="error">недоступно</strong>`;
+            }
+
+            return false;
+        }
+    }
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+
+        const author = document.getElementById('author').value.trim();
+        const message = document.getElementById('message').value.trim();
+
+        if (!author || !message) {
+            alert('Пожалуйста, заполните все поля');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Отправка...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({author, message})
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+            await response.json();
+            messageForm.reset();
+
+            alert('✅ Сообщение успешно отправлено!');
+
+            await loadMessages();
+
+        } catch (error) {
+            console.error('Error sending message:', error);
+            alert(`❌ Ошибка отправки: ${error.message}`);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Отправить сообщение';
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatDateTime(timestamp) {
+        try {
+            const date = new Date(timestamp);
+            if (isNaN(date.getTime())) {
+                if (typeof timestamp === 'string' && timestamp.includes('-') && timestamp.includes(':')) {
+                    return timestamp;
+                }
+                return 'Дата не указана';
+            }
+            return date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return timestamp;
+        }
+    }
+
+    async function initApp() {
+        const backendOk = await checkBackendHealth();
+
+        if (backendOk) {
+            await loadMessages();
+        } else {
+            messagesContainer.innerHTML = `
+                    <div class="error">
+                        ❌ Бекенд недоступен. Сообщения не могут быть загружены.
+                        <br><small>Проверьте настройки и перезагрузите страницу</small>
+                    </div>
+                `;
+        }
+
+        messageForm.addEventListener('submit', handleSubmit);
+
+        setInterval(checkBackendHealth, 10000);
+    }
+
+    document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>

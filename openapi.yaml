@@ -1,14 +1,102 @@
 openapi: 3.0.0
 info:
-  title: Sample API
+  title: Guestbook API
   version: 1.0.0
+  description: API Gateway for serverless guestbook application
+
+servers:
+  - url: https://d5d6rpnsp29i770d0pfk.kf69zffa.apigw.yandexcloud.net
 paths:
   /:
     get:
+      summary: Main page
+      description: Serve the main HTML page from Object Storage
       x-yc-apigateway-integration:
-        type: dummy
-        content:
-          '*': Hello, World!
-        http_code: 200
-        http_headers:
-          Content-Type: text/plain
+        type: object_storage
+        bucket: ${BUCKET_NAME}
+        object: index.html
+        presigned_redirect: false
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: HTML page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /health:
+    get:
+      summary: Health check
+      description: Check backend health status and version
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${CONTAINER_ID}
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  backend_version:
+                    type: string
+                    example: 1.0.0
+                  instance_id:
+                    type: string
+                  ydb_status:
+                    type: string
+                  ydb_configured:
+                    type: boolean
+
+  /messages:
+    get:
+      summary: Get messages
+      description: Retrieve latest messages from guestbook
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${CONTAINER_ID}
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    author:
+                      type: string
+                    message:
+                      type: string
+                    timestamp:
+                      type: string
+
+    post:
+      summary: Create message
+      description: Add new message to guestbook
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: ${CONTAINER_ID}
+        service_account_id: ${SERVICE_ACCOUNT_ID}
+      responses:
+        '200':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  id:
+                    type: string
